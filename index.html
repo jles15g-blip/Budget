@@ -1,208 +1,272 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>My Monthly Budget</title>
+<title>Pro Budget Tracker</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
-body{font-family:Arial;margin:0;background:#f2f2f2;padding:15px;}
-h1{text-align:center;}
-.container{max-width:650px;margin:auto;}
-.controls{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;}
-input{padding:8px;flex:1;}
-button{padding:8px;border:none;border-radius:6px;background:#4CAF50;color:white;cursor:pointer;}
-button.delete{background:#d9534f;}
-button.edit{background:#0275d8;}
-.budget{background:white;padding:15px;margin-top:15px;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,0.1);}
-table{width:100%;border-collapse:collapse;}
-td,th{padding:6px;border-bottom:1px solid #ddd;}
-.paid{text-decoration:line-through;color:gray;}
-.total{text-align:right;font-weight:bold;margin-top:8px;}
-.hidden{display:none;}
-.dashboard{background:white;padding:10px;border-radius:8px;margin-bottom:15px;text-align:center;font-weight:bold;}
-@media(max-width:500px){
-table thead{display:none;}
-table tr{display:block;background:#fafafa;margin-bottom:8px;padding:8px;border-radius:6px;}
-table td{display:block;border:none;}
+:root {
+    --primary: #10b981;
+    --secondary: #3b82f6;
+    --danger: #ef4444;
+    --bg: #f8fafc;
+    --card: #ffffff;
+    --text: #1e293b;
+}
+
+body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; background: var(--bg); color: var(--text); padding: 10px; }
+h1 { text-align: center; color: #0f172a; font-size: 1.5rem; margin-bottom: 20px; }
+.container { max-width: 500px; margin: auto; }
+
+/* Dashboard Styling */
+.dashboard { 
+    background: linear-gradient(135deg, #10b981, #059669); 
+    color: white; padding: 20px; border-radius: 16px; 
+    margin-bottom: 20px; text-align: center; 
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+}
+.dashboard span { font-size: 1.8rem; display: block; margin-top: 5px; }
+
+/* Controls */
+.controls { display: flex; gap: 8px; margin-bottom: 20px; }
+input { 
+    padding: 10px; border: 1px solid #e2e8f0; border-radius: 8px; outline: none;
+    font-size: 14px;
+}
+#budgetName { flex: 2; }
+.itemAmount { width: 70px; flex: none !important; } /* Smaller amount boxes */
+
+button { 
+    padding: 10px 15px; border: none; border-radius: 8px; 
+    color: white; cursor: pointer; font-weight: 600; transition: opacity 0.2s;
+}
+.btn-main { background: var(--primary); }
+.btn-add { background: var(--secondary); }
+.btn-save { background: #6366f1; width: 100%; margin-top: 10px; }
+.btn-delete { background: var(--danger); font-size: 12px; padding: 5px 10px; }
+.btn-edit { background: #f59e0b; margin-top: 10px; }
+
+/* Budget Card */
+.budget { 
+    background: var(--card); padding: 15px; margin-top: 15px; 
+    border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    border-left: 5px solid var(--primary);
+}
+h2 { margin-top: 0; font-size: 1.1rem; color: #334155; border-bottom: 1px solid #f1f5f9; padding-bottom: 10px; }
+
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+td, th { padding: 8px 4px; text-align: left; border-bottom: 1px solid #f1f5f9; }
+.paid { text-decoration: line-through; opacity: 0.5; }
+.total { text-align: right; font-weight: bold; margin-top: 12px; color: var(--primary); font-size: 1.1rem; }
+
+.hidden { display: none; }
+.item-row input { border: 1px solid #eee; padding: 4px; border-radius: 4px; width: 100%; box-sizing: border-box; }
+
+/* Responsive adjustments */
+@media(max-width: 500px) {
+    .itemAmount { width: 60px; }
+    input { font-size: 16px; } /* Prevents iOS zoom on focus */
 }
 </style>
 </head>
 <body>
-<h1>My Monthly Budget</h1>
+
 <div class="container">
-<div class="dashboard">
-All Budgets Total: £<span id="grandTotal">0</span>
-</div>
-<div class="controls">
-<input id="budgetName" placeholder="New Budget (Example: April Budget)">
-<button onclick="createBudget()">Create</button>
-</div>
-<div id="budgets"></div>
-</div>
-<script>
-let budgets=[];
-function save(){localStorage.setItem("budgets",JSON.stringify(budgets));}
-function load(){
-  let data=localStorage.getItem("budgets");
-  if(!data)return;
-  budgets=JSON.parse(data);
-  budgets.forEach(renderBudget);
-}
-function createBudget(){
-  let name=document.getElementById("budgetName").value;
-  if(!name)return;
-  let budget={id:Date.now(),name:name,items:[],locked:false};
-  budgets.push(budget);
-  renderBudget(budget);
-  save();
-  document.getElementById("budgetName").value="";
-}
-function renderBudget(budget){
-  let div=document.createElement("div");
-  div.className="budget";
-  div.dataset.id=budget.id;
-  div.innerHTML=`
-  <div class="editArea">
-    <h2>${budget.name}</h2>
-    <div class="controls">
-      <input placeholder="Item name" class="itemName">
-      <input type="number" placeholder="Amount" class="itemAmount">
-      <button onclick="addItem(this)">Add</button>
-      <button onclick="saveBudget(this)">Save Budget</button>
-      <button class="delete" onclick="deleteBudget(this)">Delete Budget</button>
+    <h1>💸 Money Manager</h1>
+    
+    <div class="dashboard">
+        Total Planned Spending
+        <br><span>£<span id="grandTotal">0.00</span></span>
     </div>
-    <table>
-      <thead><tr><th>Item</th><th>Amount</th><th>Paid</th><th></th></tr></thead>
-      <tbody></tbody>
-    </table>
-    <div class="total">Total: £<span>0</span></div>
-  </div>
-  <div class="card hidden">
-    <h2>${budget.name}</h2>
-    <table>
-      <thead><tr><th>Item</th><th>Amount</th><th>Paid</th></tr></thead>
-      <tbody></tbody>
-    </table>
-    <div class="total">Total: £<span class="cardTotal">0</span></div>
-    <button class="edit" onclick="editBudget(this)">Edit</button>
-  </div>
-  `;
-  document.getElementById("budgets").appendChild(div);
-  budget.items.forEach(i=>renderItem(div,i));
-  updateTotal(div);
+
+    <div class="controls">
+        <input id="budgetName" placeholder="e.g., March Bills">
+        <button class="btn-main" onclick="createBudget()">Create</button>
+    </div>
+
+    <div id="budgets"></div>
+</div>
+
+<script>
+let budgets = [];
+
+function save() { localStorage.setItem("budgets", JSON.stringify(budgets)); }
+
+function load() {
+    let data = localStorage.getItem("budgets");
+    if (!data) return;
+    budgets = JSON.parse(data);
+    budgets.forEach(renderBudget);
+    updateDashboard();
 }
-function addItem(btn){
-  let budgetDiv=btn.closest(".budget");
-  let nameInput=budgetDiv.querySelector(".itemName");
-  let amountInput=budgetDiv.querySelector(".itemAmount");
-  let name=nameInput.value;
-  let amount=Number(amountInput.value);
-  if(!name||!amount)return;
-  let item={id:Date.now(),name:name,amount:amount,date:""};
-  let budget=budgets.find(b=>b.id==budgetDiv.dataset.id);
-  budget.items.push(item);
-  renderItem(budgetDiv,item);
-  updateTotal(budgetDiv);
-  save();
-  // Keep input fields as is so user can add next item easily
+
+function createBudget() {
+    let name = document.getElementById("budgetName").value;
+    if (!name) return;
+    let budget = { id: Date.now(), name: name, items: [], locked: false };
+    budgets.push(budget);
+    renderBudget(budget);
+    save();
+    document.getElementById("budgetName").value = "";
 }
-function renderItem(budgetDiv,item){
-  // Add row to edit table
-  let tbody=budgetDiv.querySelector(".editArea tbody");
-  let row=document.createElement("tr");
-  row.dataset.id=item.id;
-  row.innerHTML=`
-    <td contenteditable="true" oninput="editName(this)">${item.name}</td>
-    <td><input type="number" value="${item.amount}" onchange="editAmount(this)"></td>
-    <td><input type="date" value="${item.date}" onchange="togglePaid(this)"></td>
-    <td><button class="delete" onclick="deleteItem(this)">X</button></td>
-  `;
-  tbody.appendChild(row);
-  // Add row to card table
-  let cardTbody=budgetDiv.querySelector(".card tbody");
-  let cardRow=document.createElement("tr");
-  cardRow.dataset.id=item.id;
-  cardRow.innerHTML=`
-    <td>${item.name}</td>
-    <td>${item.amount}</td>
-    <td>${item.date}</td>
-  `;
-  cardTbody.appendChild(cardRow);
+
+function renderBudget(budget) {
+    let div = document.createElement("div");
+    div.className = "budget";
+    div.dataset.id = budget.id;
+    div.innerHTML = `
+    <div class="editArea">
+        <h2>Editing: ${budget.name}</h2>
+        <div class="controls">
+            <input placeholder="Item" class="itemName" style="flex:2">
+            <input type="number" placeholder="£" class="itemAmount">
+            <button class="btn-add" onclick="addItem(this)">+</button>
+        </div>
+        <table>
+            <thead><tr><th>Item</th><th style="width:70px">£</th><th>Paid</th><th></th></tr></thead>
+            <tbody></tbody>
+        </table>
+        <div class="total">Subtotal: £<span class="editTotal">0.00</span></div>
+        <button class="btn-save" onclick="toggleView(this, true)">Done & Save</button>
+        <button class="btn-delete" style="margin-top:10px; background:none; color:#94a3b8; width:100%" onclick="deleteBudget(this)">Delete Entire Budget</button>
+    </div>
+    <div class="card hidden">
+        <h2>${budget.name}</h2>
+        <table>
+            <tbody class="card-body"></tbody>
+        </table>
+        <div class="total">Total: £<span class="cardTotal">0.00</span></div>
+        <button class="btn-edit" onclick="toggleView(this, false)">Edit Items</button>
+    </div>
+    `;
+    document.getElementById("budgets").appendChild(div);
+    budget.items.forEach(i => renderItem(div, i));
+    updateTotal(div);
 }
-function editName(input){
-  let row=input.closest("tr");
-  let budget=budgets.find(b=>b.id==row.closest(".budget").dataset.id);
-  let item=budget.items.find(i=>i.id==row.dataset.id);
-  item.name=input.innerText;
-  // update card row
-  let cardRow=row.closest(".budget").querySelector(".card tbody tr[data-id='"+item.id+"']");
-  cardRow.children[0].innerText=item.name;
-  save();
+
+function addItem(btn) {
+    let budgetDiv = btn.closest(".budget");
+    let nameInput = budgetDiv.querySelector(".itemName");
+    let amountInput = budgetDiv.querySelector(".itemAmount");
+    let name = nameInput.value;
+    let amount = parseFloat(amountInput.value);
+
+    if (!name || isNaN(amount)) return;
+
+    let item = { id: Date.now(), name: name, amount: amount, date: "" };
+    let budget = budgets.find(b => b.id == budgetDiv.dataset.id);
+    budget.items.push(item);
+    
+    renderItem(budgetDiv, item);
+    updateTotal(budgetDiv);
+    save();
+
+    nameInput.value = "";
+    amountInput.value = "";
 }
-function editAmount(input){
-  let row=input.closest("tr");
-  let budget=budgets.find(b=>b.id==row.closest(".budget").dataset.id);
-  let item=budget.items.find(i=>i.id==row.dataset.id);
-  item.amount=Number(input.value);
-  let cardRow=row.closest(".budget").querySelector(".card tbody tr[data-id='"+item.id+"']");
-  cardRow.children[1].innerText=item.amount;
-  updateTotal(row.closest(".budget"));
-  save();
+
+function renderItem(budgetDiv, item) {
+    let tbody = budgetDiv.querySelector(".editArea tbody");
+    let row = document.createElement("tr");
+    row.className = "item-row";
+    row.dataset.id = item.id;
+    row.innerHTML = `
+        <td contenteditable="true" onblur="editName(this)">${item.name}</td>
+        <td><input type="number" class="itemAmount" value="${item.amount}" oninput="editAmount(this)"></td>
+        <td><input type="checkbox" ${item.date ? 'checked' : ''} onclick="togglePaid(this)"></td>
+        <td><button class="btn-delete" onclick="deleteItem(this)">✕</button></td>
+    `;
+    tbody.appendChild(row);
+
+    let cardTbody = budgetDiv.querySelector(".card-body");
+    let cardRow = document.createElement("tr");
+    cardRow.dataset.id = item.id;
+    cardRow.className = item.date ? "paid" : "";
+    cardRow.innerHTML = `<td>${item.name}</td><td>£${item.amount.toFixed(2)}</td><td>${item.date ? '✅' : ''}</td>`;
+    cardTbody.appendChild(cardRow);
 }
-function togglePaid(input){
-  let row=input.closest("tr");
-  let budget=budgets.find(b=>b.id==row.closest(".budget").dataset.id);
-  let item=budget.items.find(i=>i.id==row.dataset.id);
-  item.date=input.value;
-  row.classList.toggle("paid",!!input.value);
-  let cardRow=row.closest(".budget").querySelector(".card tbody tr[data-id='"+item.id+"']");
-  cardRow.children[2].innerText=item.date;
-  updateTotal(row.closest(".budget"));
-  save();
+
+function editName(cell) {
+    let row = cell.closest("tr");
+    let budget = budgets.find(b => b.id == row.closest(".budget").dataset.id);
+    let item = budget.items.find(i => i.id == row.dataset.id);
+    item.name = cell.innerText;
+    updateCard(row.closest(".budget"), item);
+    save();
 }
-function deleteItem(btn){
-  let row=btn.closest("tr");
-  let budget=budgets.find(b=>b.id==row.closest(".budget").dataset.id);
-  budget.items=budget.items.filter(i=>i.id!=row.dataset.id);
-  // remove from edit table
-  row.remove();
-  // remove from card table
-  let cardRow=row.closest(".budget").querySelector(".card tbody tr[data-id='"+row.dataset.id+"']");
-  cardRow.remove();
-  updateTotal(row.closest(".budget"));
-  save();
+
+function editAmount(input) {
+    let row = input.closest("tr");
+    let budget = budgets.find(b => b.id == row.closest(".budget").dataset.id);
+    let item = budget.items.find(i => i.id == row.dataset.id);
+    item.amount = parseFloat(input.value) || 0;
+    updateTotal(row.closest(".budget"));
+    updateCard(row.closest(".budget"), item);
+    save();
 }
-function saveBudget(btn){
-  let budgetDiv=btn.closest(".budget");
-  let editArea=budgetDiv.querySelector(".editArea");
-  let card=budgetDiv.querySelector(".card");
-  card.classList.remove("hidden");
-  editArea.querySelector(".total span").innerText=Array.from(budgetDiv.querySelector(".editArea tbody tr")).reduce((t,r)=>t+Number(r.children[1].querySelector("input").value),0).toFixed(2);
-  card.querySelector(".cardTotal").innerText=editArea.querySelector(".total span").innerText;
+
+function togglePaid(cb) {
+    let row = cb.closest("tr");
+    let budget = budgets.find(b => b.id == row.closest(".budget").dataset.id);
+    let item = budget.items.find(i => i.id == row.dataset.id);
+    item.date = cb.checked ? new Date().toLocaleDateString() : "";
+    row.classList.toggle("paid", cb.checked);
+    updateCard(row.closest(".budget"), item);
+    save();
 }
-function editBudget(btn){
-  let budgetDiv=btn.closest(".budget");
-  budgetDiv.querySelector(".editArea").classList.remove("hidden");
+
+function updateCard(budgetDiv, item) {
+    let cardRow = budgetDiv.querySelector(`.card-body tr[data-id="${item.id}"]`);
+    if (cardRow) {
+        cardRow.className = item.date ? "paid" : "";
+        cardRow.innerHTML = `<td>${item.name}</td><td>£${item.amount.toFixed(2)}</td><td>${item.date ? '✅' : ''}</td>`;
+    }
 }
-function deleteBudget(btn){
-  btn.closest(".budget").remove();
+
+function deleteItem(btn) {
+    let row = btn.closest("tr");
+    let budgetDiv = row.closest(".budget");
+    let budget = budgets.find(b => b.id == budgetDiv.dataset.id);
+    budget.items = budget.items.filter(i => i.id != row.dataset.id);
+    row.remove();
+    budgetDiv.querySelector(`.card-body tr[data-id="${row.dataset.id}"]`).remove();
+    updateTotal(budgetDiv);
+    save();
 }
-function updateTotal(budgetDiv){
-  let total=0;
-  budgetDiv.querySelectorAll(".editArea tbody tr").forEach(r=>{
-    total+=Number(r.children[1].querySelector("input").value);
-  });
-  budgetDiv.querySelector(".editArea .total span").innerText=total.toFixed(2);
-  budgetDiv.querySelector(".card .total span").innerText=total.toFixed(2);
-  updateDashboard();
+
+function toggleView(btn, showCard) {
+    let budgetDiv = btn.closest(".budget");
+    budgetDiv.querySelector(".editArea").classList.toggle("hidden", showCard);
+    budgetDiv.querySelector(".card").classList.toggle("hidden", !showCard);
+    updateTotal(budgetDiv);
 }
-function updateDashboard(){
-  let total=0;
-  document.querySelectorAll(".budget").forEach(bd=>{
-    total+=Number(bd.querySelector(".card .total span").innerText);
-  });
-  document.getElementById("grandTotal").innerText=total.toFixed(2);
+
+function deleteBudget(btn) {
+    if(confirm("Delete this entire budget?")) {
+        let budgetDiv = btn.closest(".budget");
+        budgets = budgets.filter(b => b.id != budgetDiv.dataset.id);
+        budgetDiv.remove();
+        updateDashboard();
+        save();
+    }
 }
+
+function updateTotal(budgetDiv) {
+    let budget = budgets.find(b => b.id == budgetDiv.dataset.id);
+    let total = budget.items.reduce((sum, item) => sum + item.amount, 0);
+    
+    budgetDiv.querySelector(".editTotal").innerText = total.toFixed(2);
+    budgetDiv.querySelector(".cardTotal").innerText = total.toFixed(2);
+    updateDashboard();
+}
+
+function updateDashboard() {
+    let grandTotal = budgets.reduce((sum, b) => {
+        return sum + b.items.reduce((iSum, i) => iSum + i.amount, 0);
+    }, 0);
+    document.getElementById("grandTotal").innerText = grandTotal.toFixed(2);
+}
+
 load();
 </script>
 </body>
