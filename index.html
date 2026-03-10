@@ -2,339 +2,237 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>WealthTracker Pro</title>
+<title>WealthTracker Pro | Historical</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
-:root {
-    --primary: #10b981;
-    --secondary: #3b82f6;
-    --danger: #ef4444;
-    --bg: #f1f5f9;
-    --card: #ffffff;
-    --dark: #0f172a;
-    --muted: #64748b;
-    --warning: #f59e0b;
-}
+    :root {
+        --primary: #10b981; --secondary: #3b82f6; --danger: #ef4444;
+        --bg: #f1f5f9; --card: #ffffff; --dark: #0f172a;
+        --muted: #64748b; --warning: #f59e0b;
+    }
 
-body { font-family: 'Segoe UI', system-ui, sans-serif; margin: 0; background: var(--bg); color: var(--dark); padding: 10px; padding-bottom: 50px; }
-.container { max-width: 500px; margin: auto; }
+    body { font-family: 'Segoe UI', system-ui, sans-serif; margin: 0; background: var(--bg); color: var(--dark); padding: 10px 10px 80px 10px; }
+    .container { max-width: 500px; margin: auto; }
 
-/* Dashboard Styling */
-.dashboard { 
-    background: var(--dark); 
-    color: white; padding: 20px; border-radius: 24px; 
-    margin-bottom: 20px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.2);
-}
-.income-section { border-bottom: 1px solid #334155; padding-bottom: 15px; margin-bottom: 15px; }
-.income-header { display: flex; justify-content: space-between; align-items: center; }
-.income-input { 
-    background: rgba(255,255,255,0.1); border: 1px solid #475569; 
-    color: white; padding: 8px; border-radius: 8px; width: 90px; font-weight: bold;
-}
-.btn-reset { background: #6366f1; font-size: 11px; padding: 6px 10px; text-transform: uppercase; }
+    /* Dashboard */
+    .dashboard { 
+        background: var(--dark); color: white; padding: 20px; border-radius: 24px; 
+        margin-bottom: 20px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.2);
+        position: sticky; top: 10px; z-index: 100;
+    }
+    .income-header { display: flex; justify-content: space-between; align-items: center; }
+    .income-input { background: rgba(255,255,255,0.1); border: 1px solid #475569; color: white; padding: 8px; border-radius: 8px; width: 80px; }
+    
+    .month-group { margin-top: 30px; border-left: 4px solid var(--secondary); padding-left: 15px; }
+    .month-title { font-size: 1.4rem; font-weight: 800; color: var(--dark); margin-bottom: 15px; display: flex; justify-content: space-between; }
 
-.dash-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 15px; }
-.dash-item { background: rgba(255,255,255,0.05); padding: 8px; border-radius: 12px; text-align: center; }
-.dash-item label { font-size: 10px; text-transform: uppercase; opacity: 0.7; display: block; margin-bottom: 4px; }
-.dash-item span { font-size: 0.9rem; font-weight: bold; }
+    /* Budget Cards */
+    .budget { background: var(--card); padding: 18px; margin-bottom: 15px; border-radius: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); border: 1px solid #eef2f6; }
+    .progress-container { height: 8px; background: #f1f5f9; border-radius: 4px; margin: 12px 0; overflow: hidden; }
+    .progress-bar { height: 100%; background: var(--primary); width: 0%; transition: width 0.5s; }
 
-/* Main Input Area */
-.main-controls { background: white; padding: 15px; border-radius: 16px; display: flex; gap: 8px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
-input { padding: 12px; border: 2px solid #e2e8f0; border-radius: 10px; outline: none; font-size: 14px; }
-#budgetName { flex: 1; }
-
-/* Buttons */
-button { border: none; border-radius: 10px; color: white; cursor: pointer; font-weight: 600; transition: 0.2s; }
-.btn-main { background: var(--primary); padding: 0 20px; }
-.btn-add { background: var(--secondary); padding: 10px; }
-.btn-save { background: var(--dark); width: 100%; margin-top: 15px; padding: 12px; }
-.btn-edit { background: var(--warning); padding: 8px 15px; flex: 1; }
-.btn-delete { background: var(--danger); padding: 8px 15px; flex: 1; }
-
-/* Budget Cards */
-.budget { background: var(--card); padding: 18px; margin-top: 15px; border-radius: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); border: 1px solid #eef2f6; }
-.progress-container { height: 8px; background: #f1f5f9; border-radius: 4px; margin: 12px 0; overflow: hidden; }
-.progress-bar { height: 100%; background: var(--primary); width: 0%; transition: width 0.5s ease; }
-
-h2 { margin: 0; font-size: 1.1rem; color: var(--dark); }
-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 10px; }
-td, th { padding: 10px 4px; text-align: left; border-bottom: 1px solid #f8fafc; }
-.paid { text-decoration: line-through; color: var(--muted); opacity: 0.6; }
-
-.total-row { display: flex; justify-content: space-between; margin-top: 15px; font-weight: bold; border-top: 1px solid #f1f5f9; padding-top: 10px; }
-.card-actions { display: flex; gap: 10px; margin-top: 15px; }
-
-.hidden { display: none; }
-.delete-small { background: var(--danger); font-size: 10px; padding: 4px 6px; }
-
-@media(max-width: 500px) { .itemAmount { width: 55px; } }
+    .main-controls { background: white; padding: 15px; border-radius: 16px; display: flex; gap: 8px; margin-bottom: 20px; position: sticky; top: 220px; z-index: 90; }
+    input { padding: 12px; border: 2px solid #e2e8f0; border-radius: 10px; outline: none; }
+    button { border: none; border-radius: 10px; color: white; cursor: pointer; font-weight: 600; }
+    
+    .btn-reset { background: var(--secondary); padding: 8px 12px; }
+    .btn-main { background: var(--primary); flex: 1; }
+    .btn-edit { background: var(--warning); padding: 5px 10px; font-size: 12px; }
+    .btn-delete { background: var(--danger); padding: 5px 10px; font-size: 12px; }
+    
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    td { padding: 8px 4px; border-bottom: 1px solid #f8fafc; }
+    .paid { text-decoration: line-through; color: var(--muted); opacity: 0.6; }
+    .hidden { display: none; }
 </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>📊 WealthTracker</h1>
-    
     <div class="dashboard">
-        <div class="income-section">
-            <div class="income-header">
-                <div style="display:flex; align-items:center; gap:8px;">
-                    <span style="font-size:14px">Income:</span>
-                    <input type="number" id="monthlyIncome" class="income-input" value="2000" oninput="updateDashboard()">
-                </div>
-                <button class="btn-reset" onclick="startNewMonth()">New Month 🔄</button>
+        <div class="income-header">
+            <div>
+                <label style="font-size:12px; display:block; opacity:0.7">Monthly Income</label>
+                <input type="number" id="monthlyIncome" class="income-input" value="2000" oninput="updateAll()">
             </div>
-            <div style="margin-top:15px; text-align: center;">
-                <label style="font-size: 12px; opacity: 0.8;">Safe to Spend (Monthly)</label>
-                <div style="font-size: 2.2rem; font-weight: 800; color: var(--primary);">£<span id="safeToSpend">0.00</span></div>
-            </div>
+            <button class="btn-reset" onclick="createNewMonth()">+ New Month</button>
         </div>
-
-        <div class="dash-grid">
-            <div class="dash-item"><label>Bills</label>£<span id="grandTotal">0.00</span></div>
-            <div class="dash-item"><label>Paid</label>£<span id="grandPaid">0.00</span></div>
-            <div class="dash-item"><label>Left</label>£<span id="grandRemaining">0.00</span></div>
+        <div style="text-align: center; margin-top: 15px;">
+            <div style="font-size: 2rem; font-weight: 800; color: var(--primary);">£<span id="safeToSpend">0.00</span></div>
+            <label style="font-size: 11px; opacity: 0.8; text-transform: uppercase;">Safe to Spend (Current Month)</label>
         </div>
     </div>
 
     <div class="main-controls">
-        <input id="budgetName" placeholder="e.g. Subscriptions">
-        <button class="btn-main" onclick="createBudget()">Add</button>
+        <input id="budgetName" style="flex:2" placeholder="New Category (e.g. Rent)">
+        <button class="btn-main" onclick="addCategoryToCurrentMonth()">Add Category</button>
     </div>
 
-    <div id="budgets"></div>
+    <div id="monthsContainer"></div>
 </div>
 
 <script>
-let budgets = [];
+// Data Structure: history = [{ monthId: "March 2026", budgets: [...] }]
+let history = JSON.parse(localStorage.getItem("wealth_history_v4")) || [];
+let income = localStorage.getItem("wealth_income_v4") || 2000;
 
-function save() { 
-    localStorage.setItem("budgets_v3", JSON.stringify(budgets)); 
-    localStorage.setItem("income_v3", document.getElementById("monthlyIncome").value);
+function save() {
+    localStorage.setItem("wealth_history_v4", JSON.stringify(history));
+    localStorage.setItem("wealth_income_v4", document.getElementById("monthlyIncome").value);
 }
 
-function load() {
-    let data = localStorage.getItem("budgets_v3");
-    let savedIncome = localStorage.getItem("income_v3");
-    if (savedIncome) document.getElementById("monthlyIncome").value = savedIncome;
-    if (!data) return;
-    budgets = JSON.parse(data);
-    budgets.forEach(renderBudget);
-    updateDashboard();
-}
-
-function createBudget() {
-    let name = document.getElementById("budgetName").value;
+function createNewMonth() {
+    const name = prompt("Enter Month Name (e.g., April 2026):", new Date().toLocaleDateString('en-GB', {month: 'long', year: 'numeric'}));
     if (!name) return;
-    let budget = { id: Date.now(), name: name, items: [] };
-    budgets.push(budget);
-    renderBudget(budget);
+
+    // Clone categories from the last month but reset "paid" status
+    let lastMonthBudgets = history.length > 0 ? JSON.parse(JSON.stringify(history[0].budgets)) : [];
+    lastMonthBudgets.forEach(b => b.items.forEach(i => i.isPaid = false));
+
+    const newMonth = {
+        id: Date.now(),
+        monthName: name,
+        budgets: lastMonthBudgets
+    };
+
+    history.unshift(newMonth); // Add to start of array
+    render();
     save();
+}
+
+function addCategoryToCurrentMonth() {
+    if (history.length === 0) {
+        alert("Please create a Month first!");
+        return;
+    }
+    const name = document.getElementById("budgetName").value;
+    if (!name) return;
+
+    history[0].budgets.push({
+        id: Date.now(),
+        name: name,
+        items: []
+    });
+
     document.getElementById("budgetName").value = "";
-}
-
-function startNewMonth() {
-    if(confirm("Uncheck all 'Paid' items for the new month?")) {
-        budgets.forEach(b => b.items.forEach(i => i.isPaid = false));
-        refreshAll();
-    }
-}
-
-function refreshAll() {
-    document.getElementById("budgets").innerHTML = "";
-    budgets.forEach(renderBudget);
-    updateDashboard();
+    render();
     save();
 }
 
-function renderBudget(budget) {
-    let div = document.createElement("div");
-    div.className = "budget";
-    div.dataset.id = budget.id;
-    div.innerHTML = `
-    <div class="editArea hidden">
-        <h2 contenteditable="true" onblur="updateBudgetName(this)">${budget.name}</h2>
-        <div style="display:flex; gap:5px; margin-top:10px;">
-            <input placeholder="Item" class="itemName" style="flex:2">
-            <input type="number" placeholder="£" class="itemAmount">
-            <button class="btn-add" onclick="addItem(this)">+</button>
-        </div>
-        <table>
-            <thead><tr><th>Item</th><th>£</th><th>Paid</th><th></th></tr></thead>
-            <tbody class="edit-tbody"></tbody>
-        </table>
-        <button class="btn-save" onclick="toggleView(this, true)">Save Changes</button>
-    </div>
-
-    <div class="card">
-        <div style="display:flex; justify-content:space-between; align-items:center">
-            <h2>${budget.name}</h2>
-            <span class="perc-text" style="font-size:12px; font-weight:bold; color:var(--primary)">0%</span>
-        </div>
-        <div class="progress-container"><div class="progress-bar"></div></div>
-        <table><tbody class="card-tbody"></tbody></table>
-        <div class="total-row">
-            <span>Left to Pay:</span>
-            <span style="color:var(--danger)">£<span class="cardRemaining">0.00</span></span>
-        </div>
-        <div class="card-actions">
-            <button class="btn-edit" onclick="toggleView(this, false)">Edit</button>
-            <button class="btn-delete" onclick="deleteBudget(this)">Remove</button>
-        </div>
-    </div>
-    `;
-    document.getElementById("budgets").appendChild(div);
-    budget.items.forEach(i => renderItem(div, i));
-    updateTotal(div);
-}
-
-function addItem(btn) {
-    let budgetDiv = btn.closest(".budget");
-    let nameI = budgetDiv.querySelector(".itemName");
-    let amtI = budgetDiv.querySelector(".itemAmount");
-    let amount = parseFloat(amtI.value);
-    if (!nameI.value || isNaN(amount)) return;
-
-    let item = { id: Date.now(), name: nameI.value, amount: amount, isPaid: false };
-    let budget = budgets.find(b => b.id == budgetDiv.dataset.id);
-    budget.items.push(item);
+function render() {
+    const container = document.getElementById("monthsContainer");
+    container.innerHTML = "";
     
-    renderItem(budgetDiv, item);
-    updateTotal(budgetDiv);
-    save();
-    nameI.value = ""; amtI.value = "";
-}
+    history.forEach((month, mIdx) => {
+        const mDiv = document.createElement("div");
+        mDiv.className = "month-group";
+        mDiv.innerHTML = `
+            <div class="month-title">
+                ${month.monthName}
+                <button class="btn-delete" onclick="deleteMonth(${mIdx})">Delete Month</button>
+            </div>
+            <div id="budgets-${month.id}"></div>
+        `;
+        container.appendChild(mDiv);
 
-function renderItem(budgetDiv, item) {
-    // Add to Edit Table
-    let editTbody = budgetDiv.querySelector(".edit-tbody");
-    let eRow = document.createElement("tr");
-    eRow.className = "item-row" + (item.isPaid ? " paid" : "");
-    eRow.dataset.id = item.id;
-    eRow.innerHTML = `
-        <td contenteditable="true" onblur="editItemName(this)">${item.name}</td>
-        <td><input type="number" class="itemAmount" value="${item.amount}" oninput="editItemAmount(this)"></td>
-        <td><input type="checkbox" ${item.isPaid ? 'checked' : ''} onclick="togglePaid(this)"></td>
-        <td><button class="delete-small" onclick="deleteItem(this)">✕</button></td>
-    `;
-    editTbody.appendChild(eRow);
-
-    // Add to Card Table
-    let cardTbody = budgetDiv.querySelector(".card-tbody");
-    let cRow = document.createElement("tr");
-    cRow.dataset.id = item.id;
-    cRow.className = item.isPaid ? "paid" : "";
-    cRow.innerHTML = `<td>${item.name}</td><td>£${item.amount.toFixed(2)}</td><td>${item.isPaid ? '✅' : '⏳'}</td>`;
-    cardTbody.appendChild(cRow);
-}
-
-function togglePaid(cb) {
-    let row = cb.closest("tr");
-    let budgetDiv = row.closest(".budget");
-    let budget = budgets.find(b => b.id == budgetDiv.dataset.id);
-    let item = budget.items.find(i => i.id == row.dataset.id);
-    item.isPaid = cb.checked;
-    
-    row.classList.toggle("paid", cb.checked);
-    let cRow = budgetDiv.querySelector(`.card-tbody tr[data-id="${item.id}"]`);
-    cRow.className = item.isPaid ? "paid" : "";
-    cRow.innerHTML = `<td>${item.name}</td><td>£${item.amount.toFixed(2)}</td><td>${item.isPaid ? '✅' : '⏳'}</td>`;
-    
-    updateTotal(budgetDiv);
-    save();
-}
-
-function editItemName(cell) {
-    let row = cell.closest("tr");
-    let budget = budgets.find(b => b.id == row.closest(".budget").dataset.id);
-    let item = budget.items.find(i => i.id == row.dataset.id);
-    item.name = cell.innerText;
-    save();
-}
-
-function editItemAmount(input) {
-    let row = input.closest("tr");
-    let budgetDiv = row.closest(".budget");
-    let budget = budgets.find(b => b.id == budgetDiv.dataset.id);
-    let item = budget.items.find(i => i.id == row.dataset.id);
-    item.amount = parseFloat(input.value) || 0;
-    updateTotal(budgetDiv);
-    save();
-}
-
-function updateBudgetName(h2) {
-    let budget = budgets.find(b => b.id == h2.closest(".budget").dataset.id);
-    budget.name = h2.innerText;
-    h2.closest(".budget").querySelector(".card h2").innerText = budget.name;
-    save();
-}
-
-function deleteItem(btn) {
-    let row = btn.closest("tr");
-    let budgetDiv = row.closest(".budget");
-    let budget = budgets.find(b => b.id == budgetDiv.dataset.id);
-    budget.items = budget.items.filter(i => i.id != row.dataset.id);
-    row.remove();
-    budgetDiv.querySelector(`.card-tbody tr[data-id="${row.dataset.id}"]`).remove();
-    updateTotal(budgetDiv);
-    save();
-}
-
-function toggleView(btn, showCard) {
-    let budgetDiv = btn.closest(".budget");
-    if(showCard) {
-        // Refresh the card view to reflect any text edits
-        let budget = budgets.find(b => b.id == budgetDiv.dataset.id);
-        budgetDiv.querySelector(".card-tbody").innerHTML = "";
-        budget.items.forEach(i => {
-            let row = document.createElement("tr");
-            row.dataset.id = i.id;
-            row.className = i.isPaid ? "paid" : "";
-            row.innerHTML = `<td>${i.name}</td><td>£${i.amount.toFixed(2)}</td><td>${i.isPaid ? '✅' : '⏳'}</td>`;
-            budgetDiv.querySelector(".card-tbody").appendChild(row);
+        month.budgets.forEach((budget, bIdx) => {
+            renderBudget(month.id, budget, mIdx, bIdx);
         });
-    }
-    budgetDiv.querySelector(".editArea").classList.toggle("hidden", showCard);
-    budgetDiv.querySelector(".card").classList.toggle("hidden", !showCard);
+    });
+    updateAll();
 }
 
-function deleteBudget(btn) {
-    if(confirm("Delete this entire card?")) {
-        let budgetDiv = btn.closest(".budget");
-        budgets = budgets.filter(b => b.id != budgetDiv.dataset.id);
-        budgetDiv.remove();
-        updateDashboard();
+function renderBudget(monthId, budget, mIdx, bIdx) {
+    const parent = document.getElementById(`budgets-${monthId}`);
+    const bDiv = document.createElement("div");
+    bDiv.className = "budget";
+    
+    const planned = budget.items.reduce((s, i) => s + i.amount, 0);
+    const paid = budget.items.filter(i => i.isPaid).reduce((s, i) => s + i.amount, 0);
+    const perc = planned > 0 ? (paid / planned) * 100 : 0;
+
+    bDiv.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:center">
+            <h3 style="margin:0">${budget.name}</h3>
+            <span style="color:var(--primary); font-weight:bold">${Math.round(perc)}%</span>
+        </div>
+        <div class="progress-container"><div class="progress-bar" style="width:${perc}%"></div></div>
+        
+        <table>
+            ${budget.items.map((item, iIdx) => `
+                <tr class="${item.isPaid ? 'paid' : ''}">
+                    <td>${item.name}</td>
+                    <td>£${item.amount.toFixed(2)}</td>
+                    <td style="text-align:right">
+                        <input type="checkbox" ${item.isPaid ? 'checked' : ''} 
+                            onclick="toggleItem(${mIdx}, ${bIdx}, ${iIdx})">
+                    </td>
+                </tr>
+            `).join('')}
+        </table>
+
+        <div style="margin-top:10px; display:flex; gap:5px">
+            <input placeholder="Item" id="item-${budget.id}" style="flex:2; padding:5px; font-size:12px">
+            <input type="number" id="price-${budget.id}" placeholder="£" style="width:50px; padding:5px; font-size:12px">
+            <button class="btn-main" style="padding:5px 10px" onclick="addItem(${mIdx}, ${bIdx}, '${budget.id}')">+</button>
+        </div>
+        
+        <div style="margin-top:15px; display:flex; justify-content:space-between">
+            <button class="btn-delete" onclick="deleteCategory(${mIdx}, ${bIdx})">Remove Category</button>
+            <div style="font-weight:bold">Left: £${(planned - paid).toFixed(2)}</div>
+        </div>
+    `;
+    parent.appendChild(bDiv);
+}
+
+function addItem(mIdx, bIdx, budgetId) {
+    const name = document.getElementById(`item-${budgetId}`).value;
+    const price = parseFloat(document.getElementById(`price-${budgetId}`).value);
+    if(!name || isNaN(price)) return;
+
+    history[mIdx].budgets[bIdx].items.push({ name, amount: price, isPaid: false });
+    render();
+    save();
+}
+
+function toggleItem(mIdx, bIdx, iIdx) {
+    history[mIdx].budgets[bIdx].items[iIdx].isPaid = !history[mIdx].budgets[bIdx].items[iIdx].isPaid;
+    render();
+    save();
+}
+
+function deleteCategory(mIdx, bIdx) {
+    if(confirm("Delete this category?")) {
+        history[mIdx].budgets.splice(bIdx, 1);
+        render();
         save();
     }
 }
 
-function updateTotal(budgetDiv) {
-    let budget = budgets.find(b => b.id == budgetDiv.dataset.id);
-    if(!budget) return;
-    let planned = budget.items.reduce((s, i) => s + i.amount, 0);
-    let paid = budget.items.filter(i => i.isPaid).reduce((s, i) => s + i.amount, 0);
+function deleteMonth(mIdx) {
+    if(confirm("Delete entire month record?")) {
+        history.splice(mIdx, 1);
+        render();
+        save();
+    }
+}
+
+function updateAll() {
+    if(history.length === 0) return;
+    const currentMonth = history[0];
+    let totalPlanned = 0;
+    currentMonth.budgets.forEach(b => {
+        b.items.forEach(i => totalPlanned += i.amount);
+    });
     
-    budgetDiv.querySelector(".cardRemaining").innerText = (planned - paid).toFixed(2);
-    let perc = planned > 0 ? (paid / planned) * 100 : 0;
-    budgetDiv.querySelector(".progress-bar").style.width = perc + "%";
-    budgetDiv.querySelector(".perc-text").innerText = Math.round(perc) + "%";
-    updateDashboard();
+    const inc = parseFloat(document.getElementById("monthlyIncome").value) || 0;
+    document.getElementById("safeToSpend").innerText = (inc - totalPlanned).toFixed(2);
 }
 
-function updateDashboard() {
-    let planned = 0, paid = 0;
-    budgets.forEach(b => b.items.forEach(i => {
-        planned += i.amount;
-        if(i.isPaid) paid += i.amount;
-    }));
-    let inc = parseFloat(document.getElementById("monthlyIncome").value) || 0;
-    document.getElementById("grandTotal").innerText = planned.toFixed(2);
-    document.getElementById("grandPaid").innerText = paid.toFixed(2);
-    document.getElementById("grandRemaining").innerText = (planned - paid).toFixed(2);
-    document.getElementById("safeToSpend").innerText = (inc - planned).toFixed(2);
-}
-
-load();
+// Initial Load
+document.getElementById("monthlyIncome").value = income;
+render();
 </script>
+
 </body>
 </html>
