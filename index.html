@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Ultimate Budget & Income Tracker</title>
+<title>Ultimate Budget Tracker</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
 :root {
@@ -25,10 +25,13 @@ body { font-family: 'Segoe UI', system-ui, sans-serif; margin: 0; background: va
     margin-bottom: 20px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.2);
 }
 .income-section { border-bottom: 1px solid #334155; padding-bottom: 15px; margin-bottom: 15px; }
+.income-header { display: flex; justify-content: space-between; align-items: center; }
 .income-input { 
     background: rgba(255,255,255,0.1); border: 1px solid #475569; 
-    color: white; padding: 8px; border-radius: 8px; width: 100px; font-weight: bold;
+    color: white; padding: 8px; border-radius: 8px; width: 90px; font-weight: bold;
 }
+.btn-reset { background: #6366f1; font-size: 11px; padding: 6px 10px; text-transform: uppercase; }
+
 .dash-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 15px; }
 .dash-item { background: rgba(255,255,255,0.05); padding: 8px; border-radius: 12px; text-align: center; }
 .dash-item label { font-size: 10px; text-transform: uppercase; opacity: 0.7; display: block; margin-bottom: 4px; }
@@ -59,8 +62,6 @@ td, th { padding: 12px 4px; text-align: left; border-bottom: 1px solid #f8fafc; 
 
 .total-row { display: flex; justify-content: space-between; margin-top: 15px; font-weight: bold; border-top: 1px solid #f1f5f9; padding-top: 10px; }
 .hidden { display: none; }
-
-@media(max-width: 500px) { .itemAmount { width: 60px; } }
 </style>
 </head>
 <body>
@@ -70,34 +71,28 @@ td, th { padding: 12px 4px; text-align: left; border-bottom: 1px solid #f8fafc; 
     
     <div class="dashboard">
         <div class="income-section">
-            <div style="display:flex; justify-content: space-between; align-items: center;">
-                <span>Monthly Income:</span>
-                <div>£<input type="number" id="monthlyIncome" class="income-input" value="2000" oninput="updateDashboard()"></div>
+            <div class="income-header">
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <span style="font-size:14px">Income:</span>
+                    <input type="number" id="monthlyIncome" class="income-input" value="2000" oninput="updateDashboard()">
+                </div>
+                <button class="btn-reset" onclick="startNewMonth()">New Month 🔄</button>
             </div>
             <div style="margin-top:15px; text-align: center;">
-                <label style="font-size: 12px; opacity: 0.8;">Unallocated / Safe to Spend</label>
+                <label style="font-size: 12px; opacity: 0.8;">Safe to Spend (Monthly)</label>
                 <div style="font-size: 2.2rem; font-weight: 800; color: var(--primary);">£<span id="safeToSpend">0.00</span></div>
             </div>
         </div>
 
         <div class="dash-grid">
-            <div class="dash-item">
-                <label>Total Bills</label>
-                £<span id="grandTotal">0.00</span>
-            </div>
-            <div class="dash-item">
-                <label>Paid So Far</label>
-                £<span id="grandPaid">0.00</span>
-            </div>
-            <div class="dash-item">
-                <label>Left to Pay</label>
-                £<span id="grandRemaining">0.00</span>
-            </div>
+            <div class="dash-item"><label>Bills</label>£<span id="grandTotal">0.00</span></div>
+            <div class="dash-item"><label>Paid</label>£<span id="grandPaid">0.00</span></div>
+            <div class="dash-item"><label>Left</label>£<span id="grandRemaining">0.00</span></div>
         </div>
     </div>
 
     <div class="main-controls">
-        <input id="budgetName" placeholder="New Category (e.g. Rent)">
+        <input id="budgetName" placeholder="e.g. Household Bills">
         <button class="btn-main" onclick="createBudget()">Add</button>
     </div>
 
@@ -106,16 +101,15 @@ td, th { padding: 12px 4px; text-align: left; border-bottom: 1px solid #f8fafc; 
 
 <script>
 let budgets = [];
-let income = 2000;
 
 function save() { 
-    localStorage.setItem("budgets", JSON.stringify(budgets)); 
-    localStorage.setItem("income", document.getElementById("monthlyIncome").value);
+    localStorage.setItem("budgets_v2", JSON.stringify(budgets)); 
+    localStorage.setItem("income_v2", document.getElementById("monthlyIncome").value);
 }
 
 function load() {
-    let data = localStorage.getItem("budgets");
-    let savedIncome = localStorage.getItem("income");
+    let data = localStorage.getItem("budgets_v2");
+    let savedIncome = localStorage.getItem("income_v2");
     if (savedIncome) document.getElementById("monthlyIncome").value = savedIncome;
     if (!data) return;
     budgets = JSON.parse(data);
@@ -131,6 +125,18 @@ function createBudget() {
     renderBudget(budget);
     save();
     document.getElementById("budgetName").value = "";
+}
+
+function startNewMonth() {
+    if(confirm("This will uncheck all 'Paid' items for a fresh month. Your categories and amounts will stay the same. Continue?")) {
+        budgets.forEach(budget => {
+            budget.items.forEach(item => item.isPaid = false);
+        });
+        document.getElementById("budgets").innerHTML = "";
+        budgets.forEach(renderBudget);
+        updateDashboard();
+        save();
+    }
 }
 
 function renderBudget(budget) {
@@ -177,7 +183,6 @@ function addItem(btn) {
     let amtI = budgetDiv.querySelector(".itemAmount");
     let name = nameI.value;
     let amount = parseFloat(amtI.value);
-
     if (!name || isNaN(amount)) return;
 
     let item = { id: Date.now(), name: name, amount: amount, isPaid: false };
@@ -280,6 +285,7 @@ function deleteBudget(btn) {
 
 function updateTotal(budgetDiv) {
     let budget = budgets.find(b => b.id == budgetDiv.dataset.id);
+    if(!budget) return;
     let totalPlanned = budget.items.reduce((sum, item) => sum + item.amount, 0);
     let totalPaid = budget.items.filter(i => i.isPaid).reduce((sum, item) => sum + item.amount, 0);
     let remaining = totalPlanned - totalPaid;
