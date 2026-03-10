@@ -1,77 +1,106 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
 <meta charset="UTF-8">
 <title>My Monthly Budget</title>
 
 <style>
 body{
-    font-family: Arial, sans-serif;
-    background:#f5f5f5;
-    padding:30px;
+font-family:Arial;
+background:#f4f4f4;
+padding:30px;
 }
 
 h1{
-    text-align:center;
+text-align:center;
 }
 
 .container{
-    max-width:800px;
-    margin:auto;
-    background:white;
-    padding:20px;
-    border-radius:10px;
-    box-shadow:0 0 10px rgba(0,0,0,0.1);
+max-width:900px;
+margin:auto;
 }
 
-input,button{
-    padding:8px;
-    margin:5px;
+.budget{
+background:white;
+padding:15px;
+margin-top:20px;
+border-radius:8px;
+box-shadow:0 0 8px rgba(0,0,0,0.1);
 }
 
 table{
-    width:100%;
-    border-collapse:collapse;
-    margin-top:20px;
+width:100%;
+border-collapse:collapse;
+margin-top:10px;
 }
 
-th,td{
-    border-bottom:1px solid #ddd;
-    padding:10px;
-    text-align:left;
+td,th{
+padding:8px;
+border-bottom:1px solid #ddd;
 }
 
 .paid{
-    text-decoration: line-through;
-    color:gray;
+text-decoration:line-through;
+color:gray;
 }
 
 .total{
-    font-size:20px;
-    font-weight:bold;
-    text-align:right;
-    margin-top:15px;
+font-weight:bold;
+margin-top:10px;
+}
+
+button{
+padding:6px 10px;
+margin:5px;
+}
+
+input{
+padding:6px;
+margin:3px;
 }
 </style>
+
 </head>
 
 <body>
 
-<div class="container">
-
 <h1>My Monthly Budget</h1>
 
-<input list="budgetNames" id="name" placeholder="Budget Name">
-<datalist id="budgetNames"></datalist>
+<div class="container">
 
-<input type="number" id="amount" placeholder="Amount">
+<input id="budgetName" placeholder="New Budget Name (Example: April Budget)">
+<button onclick="createBudget()">Create Budget</button>
 
-<button onclick="addItem()">Add</button>
+<div id="budgets"></div>
 
-<table id="budgetTable">
+<datalist id="itemNames"></datalist>
+
+</div>
+
+<script>
+
+let itemNames = new Set();
+
+function createBudget(){
+
+let name = document.getElementById("budgetName").value;
+
+if(!name) return;
+
+let div = document.createElement("div");
+div.className="budget";
+
+div.innerHTML=`
+<h2>${name}</h2>
+
+<input list="itemNames" placeholder="Item name" class="itemName">
+<input type="number" placeholder="Amount" class="itemAmount">
+<button onclick="addItem(this)">Add Item</button>
+
+<table>
 <thead>
 <tr>
-<th>Name</th>
+<th>Item</th>
 <th>Amount</th>
 <th>Paid Date</th>
 </tr>
@@ -79,24 +108,27 @@ th,td{
 <tbody></tbody>
 </table>
 
-<div class="total">
-Total: £<span id="total">0</span>
-</div>
+<div class="total">Total: £<span>0</span></div>
+`;
 
-</div>
+document.getElementById("budgets").appendChild(div);
 
-<script>
+document.getElementById("budgetName").value="";
+}
 
-let names = new Set();
+function addItem(button){
 
-function addItem(){
+let budget = button.closest(".budget");
 
-let name = document.getElementById("name").value;
-let amount = parseFloat(document.getElementById("amount").value);
+let nameInput = budget.querySelector(".itemName");
+let amountInput = budget.querySelector(".itemAmount");
+
+let name = nameInput.value;
+let amount = parseFloat(amountInput.value);
 
 if(!name || !amount) return;
 
-let table = document.querySelector("#budgetTable tbody");
+let tbody = budget.querySelector("tbody");
 
 let row = document.createElement("tr");
 
@@ -107,46 +139,47 @@ paidInput.onchange=function(){
 row.classList.add("paid");
 };
 
-row.innerHTML =
-`<td>${name}</td>
-<td class="amount">${amount.toFixed(2)}</td>`;
+row.innerHTML=`
+<td>${name}</td>
+<td class="amount">${amount.toFixed(2)}</td>
+`;
 
-let paidCell = document.createElement("td");
+let paidCell=document.createElement("td");
 paidCell.appendChild(paidInput);
 
 row.appendChild(paidCell);
 
-table.appendChild(row);
+tbody.appendChild(row);
 
-addName(name);
-updateTotal();
+addItemName(name);
 
-document.getElementById("name").value="";
-document.getElementById("amount").value="";
+updateTotal(budget);
+
+nameInput.value="";
+amountInput.value="";
 }
 
-function updateTotal(){
+function updateTotal(budget){
 
-let total = 0;
+let total=0;
 
-document.querySelectorAll(".amount").forEach(a=>{
+budget.querySelectorAll(".amount").forEach(a=>{
 total += parseFloat(a.innerText);
 });
 
-document.getElementById("total").innerText = total.toFixed(2);
-
+budget.querySelector(".total span").innerText=total.toFixed(2);
 }
 
-function addName(name){
+function addItemName(name){
 
-if(names.has(name)) return;
+if(itemNames.has(name)) return;
 
-names.add(name);
+itemNames.add(name);
 
-let option = document.createElement("option");
-option.value = name;
+let option=document.createElement("option");
+option.value=name;
 
-document.getElementById("budgetNames").appendChild(option);
+document.getElementById("itemNames").appendChild(option);
 
 }
 
