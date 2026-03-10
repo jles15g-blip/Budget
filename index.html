@@ -4,11 +4,15 @@
 <meta charset="UTF-8">
 <title>My Monthly Budget</title>
 
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
 <style>
+
 body{
-font-family:Arial;
-background:#f4f4f4;
-padding:30px;
+font-family:Arial, sans-serif;
+background:#f2f2f2;
+margin:0;
+padding:15px;
 }
 
 h1{
@@ -16,7 +20,7 @@ text-align:center;
 }
 
 .container{
-max-width:900px;
+max-width:600px;
 margin:auto;
 }
 
@@ -24,14 +28,46 @@ margin:auto;
 background:white;
 padding:15px;
 margin-top:20px;
-border-radius:8px;
-box-shadow:0 0 8px rgba(0,0,0,0.1);
+border-radius:10px;
+box-shadow:0 2px 8px rgba(0,0,0,0.1);
+}
+
+.budget h2{
+margin-top:0;
+}
+
+.controls{
+display:flex;
+flex-wrap:wrap;
+gap:6px;
+margin-bottom:10px;
+}
+
+input{
+padding:8px;
+font-size:14px;
+flex:1;
+}
+
+button{
+padding:8px 10px;
+font-size:14px;
+border:none;
+border-radius:6px;
+background:#4CAF50;
+color:white;
+cursor:pointer;
+}
+
+button:hover{
+background:#45a049;
 }
 
 table{
 width:100%;
 border-collapse:collapse;
 margin-top:10px;
+font-size:14px;
 }
 
 td,th{
@@ -46,18 +82,32 @@ color:gray;
 
 .total{
 font-weight:bold;
+text-align:right;
 margin-top:10px;
 }
 
-button{
-padding:6px 10px;
-margin:5px;
+@media (max-width:500px){
+
+table thead{
+display:none;
 }
 
-input{
-padding:6px;
-margin:3px;
+table tr{
+display:block;
+margin-bottom:10px;
+background:#fafafa;
+border-radius:6px;
+padding:8px;
 }
+
+table td{
+display:block;
+border:none;
+padding:4px 0;
+}
+
+}
+
 </style>
 
 </head>
@@ -68,8 +118,10 @@ margin:3px;
 
 <div class="container">
 
-<input id="budgetName" placeholder="New Budget Name (Example: April Budget)">
-<button onclick="createBudget()">Create Budget</button>
+<div class="controls">
+<input id="budgetName" placeholder="New Budget (Example: April Budget)">
+<button onclick="createBudget()">Create</button>
+</div>
 
 <div id="budgets"></div>
 
@@ -83,32 +135,36 @@ let itemNames = new Set();
 
 function createBudget(){
 
-let name = document.getElementById("budgetName").value;
+let name=document.getElementById("budgetName").value;
 
 if(!name) return;
 
-let div = document.createElement("div");
+let div=document.createElement("div");
 div.className="budget";
 
 div.innerHTML=`
+
 <h2>${name}</h2>
 
+<div class="controls">
 <input list="itemNames" placeholder="Item name" class="itemName">
 <input type="number" placeholder="Amount" class="itemAmount">
-<button onclick="addItem(this)">Add Item</button>
+<button onclick="addItem(this)">Add</button>
+</div>
 
 <table>
 <thead>
 <tr>
 <th>Item</th>
 <th>Amount</th>
-<th>Paid Date</th>
+<th>Paid</th>
 </tr>
 </thead>
 <tbody></tbody>
 </table>
 
 <div class="total">Total: £<span>0</span></div>
+
 `;
 
 document.getElementById("budgets").appendChild(div);
@@ -118,36 +174,29 @@ document.getElementById("budgetName").value="";
 
 function addItem(button){
 
-let budget = button.closest(".budget");
+let budget=button.closest(".budget");
 
-let nameInput = budget.querySelector(".itemName");
-let amountInput = budget.querySelector(".itemAmount");
+let nameInput=budget.querySelector(".itemName");
+let amountInput=budget.querySelector(".itemAmount");
 
-let name = nameInput.value;
-let amount = parseFloat(amountInput.value);
+let name=nameInput.value;
+let amount=parseFloat(amountInput.value);
 
 if(!name || !amount) return;
 
-let tbody = budget.querySelector("tbody");
+let tbody=budget.querySelector("tbody");
 
-let row = document.createElement("tr");
-
-let paidInput = document.createElement("input");
-paidInput.type="date";
-
-paidInput.onchange=function(){
-row.classList.add("paid");
-};
+let row=document.createElement("tr");
 
 row.innerHTML=`
-<td>${name}</td>
-<td class="amount">${amount.toFixed(2)}</td>
+
+<td><input value="${name}" onchange="saveName(this)"></td>
+
+<td><input type="number" value="${amount}" onchange="updateBudget(this)"></td>
+
+<td><input type="date" onchange="togglePaid(this)"></td>
+
 `;
-
-let paidCell=document.createElement("td");
-paidCell.appendChild(paidInput);
-
-row.appendChild(paidCell);
 
 tbody.appendChild(row);
 
@@ -159,15 +208,44 @@ nameInput.value="";
 amountInput.value="";
 }
 
+function togglePaid(input){
+
+let row=input.closest("tr");
+
+if(input.value){
+row.classList.add("paid");
+}else{
+row.classList.remove("paid");
+}
+
+}
+
+function updateBudget(input){
+
+let budget=input.closest(".budget");
+
+updateTotal(budget);
+}
+
 function updateTotal(budget){
 
 let total=0;
 
-budget.querySelectorAll(".amount").forEach(a=>{
-total += parseFloat(a.innerText);
+budget.querySelectorAll("tbody tr").forEach(row=>{
+
+let amount=row.children[1].querySelector("input").value;
+
+total+=Number(amount);
+
 });
 
 budget.querySelector(".total span").innerText=total.toFixed(2);
+
+}
+
+function saveName(input){
+
+addItemName(input.value);
 }
 
 function addItemName(name){
