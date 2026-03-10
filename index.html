@@ -35,12 +35,15 @@
     .btn-main { background: var(--primary); flex: 1; }
     .btn-add-item { background: var(--dark); padding: 5px 12px; }
     .btn-delete { background: #fee2e2; color: var(--danger); padding: 6px 10px; font-size: 11px; }
+    .btn-del-small { background: transparent; color: #cbd5e1; padding: 4px; font-size: 14px; margin-left: 5px; }
+    .btn-del-small:hover { color: var(--danger); }
     
     table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 5px; }
-    td { padding: 10px 4px; border-bottom: 1px solid #f8fafc; }
-    .editable { border-bottom: 1px dashed #cbd5e1; cursor: text; }
-    .editable:focus { outline: none; background: #f8fafc; border-bottom-color: var(--secondary); }
+    td { padding: 10px 2px; border-bottom: 1px solid #f8fafc; }
+    .editable { border-bottom: 1px dashed #cbd5e1; cursor: text; padding: 2px 4px; }
+    .editable:focus { outline: none; background: #f8fafc; border-bottom-color: var(--secondary); border-radius: 4px; }
     .paid { text-decoration: line-through; color: var(--muted); opacity: 0.5; }
+    .action-cell { text-align: right; display: flex; align-items: center; justify-content: flex-end; }
 </style>
 </head>
 <body>
@@ -106,7 +109,7 @@ function updateValue(mIdx, bIdx, iIdx, key, value) {
     if (iIdx === null) {
         history[mIdx].budgets[bIdx][key] = value;
     } else {
-        if (key === 'amount') value = parseFloat(value) || 0;
+        if (key === 'amount') value = parseFloat(value.replace(/[^0-9.]/g, '')) || 0;
         history[mIdx].budgets[bIdx].items[iIdx][key] = value;
     }
     updateAll(); 
@@ -141,19 +144,20 @@ function render() {
             bDiv.innerHTML = `
                 <div style="display:flex; justify-content:space-between; align-items:center">
                     <h3 contenteditable="true" class="editable" onblur="updateValue(${mIdx}, ${bIdx}, null, 'name', this.innerText)" style="margin:0; font-size: 1.1rem;">${budget.name}</h3>
-                    <span id="perc-${mIdx}-${bIdx}" style="color:var(--primary); font-weight:bold">${Math.round(perc)}%</span>
+                    <span style="color:var(--primary); font-weight:bold">${Math.round(perc)}%</span>
                 </div>
-                <div class="progress-container"><div id="bar-${mIdx}-${bIdx}" class="progress-bar" style="width:${perc}%"></div></div>
+                <div class="progress-container"><div class="progress-bar" style="width:${perc}%"></div></div>
                 
                 <table>
-                    <tbody id="table-${mIdx}-${bIdx}">
+                    <tbody>
                     ${budget.items.map((item, iIdx) => `
                         <tr class="${item.isPaid ? 'paid' : ''}">
                             <td contenteditable="true" class="editable" onblur="updateValue(${mIdx}, ${bIdx}, ${iIdx}, 'name', this.innerText)" style="width:50%">${item.name}</td>
                             <td>£<span contenteditable="true" class="editable" onblur="updateValue(${mIdx}, ${bIdx}, ${iIdx}, 'amount', this.innerText); render();">${item.amount.toFixed(2)}</span></td>
-                            <td style="text-align:right">
-                                <input type="checkbox" style="transform: scale(1.2)" ${item.isPaid ? 'checked' : ''} 
+                            <td class="action-cell">
+                                <input type="checkbox" style="transform: scale(1.1)" ${item.isPaid ? 'checked' : ''} 
                                     onclick="toggleItem(${mIdx}, ${bIdx}, ${iIdx})">
+                                <button class="btn-del-small" onclick="deleteItem(${mIdx}, ${bIdx}, ${iIdx})">✕</button>
                             </td>
                         </tr>
                     `).join('')}
@@ -168,7 +172,7 @@ function render() {
                 
                 <div style="margin-top:15px; padding-top:10px; border-top:1px solid #f1f5f9; display:flex; justify-content:space-between; align-items:center">
                     <button class="btn-delete" style="background:transparent" onclick="deleteCategory(${mIdx}, ${bIdx})">Remove Category</button>
-                    <div style="font-weight:bold; font-size: 14px;">Left: <span id="left-${mIdx}-${bIdx}" style="color:var(--danger)">£${(planned - paid).toFixed(2)}</span></div>
+                    <div style="font-weight:bold; font-size: 14px;">Left: <span style="color:var(--danger)">£${(planned - paid).toFixed(2)}</span></div>
                 </div>
             `;
             parent.appendChild(bDiv);
@@ -188,6 +192,12 @@ function addItem(mIdx, bIdx, budgetId) {
 
 function toggleItem(mIdx, bIdx, iIdx) {
     history[mIdx].budgets[bIdx].items[iIdx].isPaid = !history[mIdx].budgets[bIdx].items[iIdx].isPaid;
+    render();
+    save();
+}
+
+function deleteItem(mIdx, bIdx, iIdx) {
+    history[mIdx].budgets[bIdx].items.splice(iIdx, 1);
     render();
     save();
 }
