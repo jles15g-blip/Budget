@@ -11,68 +11,80 @@
         --muted: #64748b; --warning: #f59e0b;
     }
 
-    body { font-family: 'Segoe UI', system-ui, sans-serif; margin: 0; background: var(--bg); color: var(--dark); padding: 10px 10px 80px 10px; }
+    body { font-family: 'Segoe UI', system-ui, sans-serif; margin: 0; background: var(--bg); color: var(--dark); padding: 10px; padding-bottom: 50px; }
     .container { max-width: 500px; margin: auto; }
 
-    /* Dashboard */
+    /* Fixed Header Section */
+    .header-wrapper {
+        background: var(--bg);
+        padding-bottom: 15px;
+        border-bottom: 2px solid #e2e8f0;
+        margin-bottom: 20px;
+    }
+
     .dashboard { 
         background: var(--dark); color: white; padding: 20px; border-radius: 24px; 
-        margin-bottom: 20px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.2);
-        position: sticky; top: 10px; z-index: 100;
+        margin-bottom: 15px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.2);
     }
-    .income-header { display: flex; justify-content: space-between; align-items: center; }
-    .income-input { background: rgba(255,255,255,0.1); border: 1px solid #475569; color: white; padding: 8px; border-radius: 8px; width: 80px; }
-    
-    .month-group { margin-top: 30px; border-left: 4px solid var(--secondary); padding-left: 15px; }
-    .month-title { font-size: 1.4rem; font-weight: 800; color: var(--dark); margin-bottom: 15px; display: flex; justify-content: space-between; }
 
-    /* Budget Cards */
+    .income-header { display: flex; justify-content: space-between; align-items: center; }
+    .income-input { background: rgba(255,255,255,0.1); border: 1px solid #475569; color: white; padding: 8px; border-radius: 8px; width: 80px; font-weight: bold; }
+    
+    .main-controls { 
+        background: white; padding: 15px; border-radius: 16px; 
+        display: flex; gap: 8px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+    }
+
+    /* Month Content */
+    .month-group { margin-top: 25px; border-left: 4px solid var(--secondary); padding-left: 15px; }
+    .month-title { font-size: 1.3rem; font-weight: 800; color: var(--dark); margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; }
+
     .budget { background: var(--card); padding: 18px; margin-bottom: 15px; border-radius: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); border: 1px solid #eef2f6; }
     .progress-container { height: 8px; background: #f1f5f9; border-radius: 4px; margin: 12px 0; overflow: hidden; }
     .progress-bar { height: 100%; background: var(--primary); width: 0%; transition: width 0.5s; }
 
-    .main-controls { background: white; padding: 15px; border-radius: 16px; display: flex; gap: 8px; margin-bottom: 20px; position: sticky; top: 220px; z-index: 90; }
-    input { padding: 12px; border: 2px solid #e2e8f0; border-radius: 10px; outline: none; }
-    button { border: none; border-radius: 10px; color: white; cursor: pointer; font-weight: 600; }
+    input { padding: 10px; border: 2px solid #e2e8f0; border-radius: 10px; outline: none; font-size: 14px; }
+    button { border: none; border-radius: 10px; color: white; cursor: pointer; font-weight: 600; transition: 0.2s; }
+    button:active { transform: scale(0.96); }
     
-    .btn-reset { background: var(--secondary); padding: 8px 12px; }
+    .btn-reset { background: var(--secondary); padding: 8px 12px; font-size: 13px; }
     .btn-main { background: var(--primary); flex: 1; }
-    .btn-edit { background: var(--warning); padding: 5px 10px; font-size: 12px; }
-    .btn-delete { background: var(--danger); padding: 5px 10px; font-size: 12px; }
+    .btn-add-item { background: var(--dark); padding: 5px 12px; }
+    .btn-delete { background: #fee2e2; color: var(--danger); padding: 6px 10px; font-size: 11px; }
     
-    table { width: 100%; border-collapse: collapse; font-size: 13px; }
-    td { padding: 8px 4px; border-bottom: 1px solid #f8fafc; }
-    .paid { text-decoration: line-through; color: var(--muted); opacity: 0.6; }
-    .hidden { display: none; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 5px; }
+    td { padding: 10px 4px; border-bottom: 1px solid #f8fafc; }
+    .paid { text-decoration: line-through; color: var(--muted); opacity: 0.5; }
 </style>
 </head>
 <body>
 
 <div class="container">
-    <div class="dashboard">
-        <div class="income-header">
-            <div>
-                <label style="font-size:12px; display:block; opacity:0.7">Monthly Income</label>
-                <input type="number" id="monthlyIncome" class="income-input" value="2000" oninput="updateAll()">
+    <div class="header-wrapper">
+        <div class="dashboard">
+            <div class="income-header">
+                <div>
+                    <label style="font-size:11px; display:block; opacity:0.7; text-transform:uppercase; letter-spacing:0.5px">Income</label>
+                    <input type="number" id="monthlyIncome" class="income-input" value="2000" oninput="updateAll()">
+                </div>
+                <button class="btn-reset" onclick="createNewMonth()">+ New Month</button>
             </div>
-            <button class="btn-reset" onclick="createNewMonth()">+ New Month</button>
+            <div style="text-align: center; margin-top: 15px;">
+                <div style="font-size: 2.2rem; font-weight: 800; color: var(--primary);">£<span id="safeToSpend">0.00</span></div>
+                <label style="font-size: 11px; opacity: 0.8;">SAFE TO SPEND (CURRENT)</label>
+            </div>
         </div>
-        <div style="text-align: center; margin-top: 15px;">
-            <div style="font-size: 2rem; font-weight: 800; color: var(--primary);">£<span id="safeToSpend">0.00</span></div>
-            <label style="font-size: 11px; opacity: 0.8; text-transform: uppercase;">Safe to Spend (Current Month)</label>
-        </div>
-    </div>
 
-    <div class="main-controls">
-        <input id="budgetName" style="flex:2" placeholder="New Category (e.g. Rent)">
-        <button class="btn-main" onclick="addCategoryToCurrentMonth()">Add Category</button>
+        <div class="main-controls">
+            <input id="budgetName" style="flex:2" placeholder="Category Name (e.g. Subs)">
+            <button class="btn-main" onclick="addCategoryToCurrentMonth()">Add Category</button>
+        </div>
     </div>
 
     <div id="monthsContainer"></div>
 </div>
 
 <script>
-// Data Structure: history = [{ monthId: "March 2026", budgets: [...] }]
 let history = JSON.parse(localStorage.getItem("wealth_history_v4")) || [];
 let income = localStorage.getItem("wealth_income_v4") || 2000;
 
@@ -82,38 +94,25 @@ function save() {
 }
 
 function createNewMonth() {
-    const name = prompt("Enter Month Name (e.g., April 2026):", new Date().toLocaleDateString('en-GB', {month: 'long', year: 'numeric'}));
+    const defaultName = new Date().toLocaleDateString('en-GB', {month: 'long', year: 'numeric'});
+    const name = prompt("Enter Month Name:", defaultName);
     if (!name) return;
 
-    // Clone categories from the last month but reset "paid" status
     let lastMonthBudgets = history.length > 0 ? JSON.parse(JSON.stringify(history[0].budgets)) : [];
     lastMonthBudgets.forEach(b => b.items.forEach(i => i.isPaid = false));
 
-    const newMonth = {
-        id: Date.now(),
-        monthName: name,
-        budgets: lastMonthBudgets
-    };
-
-    history.unshift(newMonth); // Add to start of array
+    const newMonth = { id: Date.now(), monthName: name, budgets: lastMonthBudgets };
+    history.unshift(newMonth); 
     render();
     save();
 }
 
 function addCategoryToCurrentMonth() {
-    if (history.length === 0) {
-        alert("Please create a Month first!");
-        return;
-    }
+    if (history.length === 0) { createNewMonth(); return; }
     const name = document.getElementById("budgetName").value;
     if (!name) return;
 
-    history[0].budgets.push({
-        id: Date.now(),
-        name: name,
-        items: []
-    });
-
+    history[0].budgets.push({ id: Date.now(), name: name, items: [] });
     document.getElementById("budgetName").value = "";
     render();
     save();
@@ -128,7 +127,7 @@ function render() {
         mDiv.className = "month-group";
         mDiv.innerHTML = `
             <div class="month-title">
-                ${month.monthName}
+                <span>${month.monthName}</span>
                 <button class="btn-delete" onclick="deleteMonth(${mIdx})">Delete Month</button>
             </div>
             <div id="budgets-${month.id}"></div>
@@ -153,7 +152,7 @@ function renderBudget(monthId, budget, mIdx, bIdx) {
 
     bDiv.innerHTML = `
         <div style="display:flex; justify-content:space-between; align-items:center">
-            <h3 style="margin:0">${budget.name}</h3>
+            <h3 style="margin:0; font-size: 1.1rem;">${budget.name}</h3>
             <span style="color:var(--primary); font-weight:bold">${Math.round(perc)}%</span>
         </div>
         <div class="progress-container"><div class="progress-bar" style="width:${perc}%"></div></div>
@@ -161,25 +160,25 @@ function renderBudget(monthId, budget, mIdx, bIdx) {
         <table>
             ${budget.items.map((item, iIdx) => `
                 <tr class="${item.isPaid ? 'paid' : ''}">
-                    <td>${item.name}</td>
+                    <td style="width:50%">${item.name}</td>
                     <td>£${item.amount.toFixed(2)}</td>
                     <td style="text-align:right">
-                        <input type="checkbox" ${item.isPaid ? 'checked' : ''} 
+                        <input type="checkbox" style="transform: scale(1.2)" ${item.isPaid ? 'checked' : ''} 
                             onclick="toggleItem(${mIdx}, ${bIdx}, ${iIdx})">
                     </td>
                 </tr>
             `).join('')}
         </table>
 
-        <div style="margin-top:10px; display:flex; gap:5px">
-            <input placeholder="Item" id="item-${budget.id}" style="flex:2; padding:5px; font-size:12px">
-            <input type="number" id="price-${budget.id}" placeholder="£" style="width:50px; padding:5px; font-size:12px">
-            <button class="btn-main" style="padding:5px 10px" onclick="addItem(${mIdx}, ${bIdx}, '${budget.id}')">+</button>
+        <div style="margin-top:12px; display:flex; gap:5px">
+            <input placeholder="Item" id="item-${budget.id}" style="flex:2; padding:8px; font-size:12px">
+            <input type="number" id="price-${budget.id}" placeholder="£" style="width:60px; padding:8px; font-size:12px">
+            <button class="btn-add-item" onclick="addItem(${mIdx}, ${bIdx}, '${budget.id}')">+</button>
         </div>
         
-        <div style="margin-top:15px; display:flex; justify-content:space-between">
-            <button class="btn-delete" onclick="deleteCategory(${mIdx}, ${bIdx})">Remove Category</button>
-            <div style="font-weight:bold">Left: £${(planned - paid).toFixed(2)}</div>
+        <div style="margin-top:15px; padding-top:10px; border-top:1px solid #f1f5f9; display:flex; justify-content:space-between; align-items:center">
+            <button class="btn-delete" style="background:transparent" onclick="deleteCategory(${mIdx}, ${bIdx})">Remove Category</button>
+            <div style="font-weight:bold; font-size: 14px;">Left: <span style="color:var(--danger)">£${(planned - paid).toFixed(2)}</span></div>
         </div>
     `;
     parent.appendChild(bDiv);
@@ -229,7 +228,6 @@ function updateAll() {
     document.getElementById("safeToSpend").innerText = (inc - totalPlanned).toFixed(2);
 }
 
-// Initial Load
 document.getElementById("monthlyIncome").value = income;
 render();
 </script>
