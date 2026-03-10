@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Ultimate Budget Tracker</title>
+<title>WealthTracker Pro</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
 :root {
@@ -13,6 +13,7 @@
     --card: #ffffff;
     --dark: #0f172a;
     --muted: #64748b;
+    --warning: #f59e0b;
 }
 
 body { font-family: 'Segoe UI', system-ui, sans-serif; margin: 0; background: var(--bg); color: var(--dark); padding: 10px; padding-bottom: 50px; }
@@ -47,8 +48,8 @@ button { border: none; border-radius: 10px; color: white; cursor: pointer; font-
 .btn-main { background: var(--primary); padding: 0 20px; }
 .btn-add { background: var(--secondary); padding: 10px; }
 .btn-save { background: var(--dark); width: 100%; margin-top: 15px; padding: 12px; }
-.btn-edit { background: #f59e0b; margin-top: 15px; width: 100%; padding: 10px; }
-.btn-delete { background: var(--danger); font-size: 12px; padding: 5px 8px; }
+.btn-edit { background: var(--warning); padding: 8px 15px; flex: 1; }
+.btn-delete { background: var(--danger); padding: 8px 15px; flex: 1; }
 
 /* Budget Cards */
 .budget { background: var(--card); padding: 18px; margin-top: 15px; border-radius: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); border: 1px solid #eef2f6; }
@@ -57,11 +58,16 @@ button { border: none; border-radius: 10px; color: white; cursor: pointer; font-
 
 h2 { margin: 0; font-size: 1.1rem; color: var(--dark); }
 table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 10px; }
-td, th { padding: 12px 4px; text-align: left; border-bottom: 1px solid #f8fafc; }
+td, th { padding: 10px 4px; text-align: left; border-bottom: 1px solid #f8fafc; }
 .paid { text-decoration: line-through; color: var(--muted); opacity: 0.6; }
 
 .total-row { display: flex; justify-content: space-between; margin-top: 15px; font-weight: bold; border-top: 1px solid #f1f5f9; padding-top: 10px; }
+.card-actions { display: flex; gap: 10px; margin-top: 15px; }
+
 .hidden { display: none; }
+.delete-small { background: var(--danger); font-size: 10px; padding: 4px 6px; }
+
+@media(max-width: 500px) { .itemAmount { width: 55px; } }
 </style>
 </head>
 <body>
@@ -92,7 +98,7 @@ td, th { padding: 12px 4px; text-align: left; border-bottom: 1px solid #f8fafc; 
     </div>
 
     <div class="main-controls">
-        <input id="budgetName" placeholder="e.g. Household Bills">
+        <input id="budgetName" placeholder="e.g. Subscriptions">
         <button class="btn-main" onclick="createBudget()">Add</button>
     </div>
 
@@ -103,13 +109,13 @@ td, th { padding: 12px 4px; text-align: left; border-bottom: 1px solid #f8fafc; 
 let budgets = [];
 
 function save() { 
-    localStorage.setItem("budgets_v2", JSON.stringify(budgets)); 
-    localStorage.setItem("income_v2", document.getElementById("monthlyIncome").value);
+    localStorage.setItem("budgets_v3", JSON.stringify(budgets)); 
+    localStorage.setItem("income_v3", document.getElementById("monthlyIncome").value);
 }
 
 function load() {
-    let data = localStorage.getItem("budgets_v2");
-    let savedIncome = localStorage.getItem("income_v2");
+    let data = localStorage.getItem("budgets_v3");
+    let savedIncome = localStorage.getItem("income_v3");
     if (savedIncome) document.getElementById("monthlyIncome").value = savedIncome;
     if (!data) return;
     budgets = JSON.parse(data);
@@ -128,15 +134,17 @@ function createBudget() {
 }
 
 function startNewMonth() {
-    if(confirm("This will uncheck all 'Paid' items for a fresh month. Your categories and amounts will stay the same. Continue?")) {
-        budgets.forEach(budget => {
-            budget.items.forEach(item => item.isPaid = false);
-        });
-        document.getElementById("budgets").innerHTML = "";
-        budgets.forEach(renderBudget);
-        updateDashboard();
-        save();
+    if(confirm("Uncheck all 'Paid' items for the new month?")) {
+        budgets.forEach(b => b.items.forEach(i => i.isPaid = false));
+        refreshAll();
     }
+}
+
+function refreshAll() {
+    document.getElementById("budgets").innerHTML = "";
+    budgets.forEach(renderBudget);
+    updateDashboard();
+    save();
 }
 
 function renderBudget(budget) {
@@ -144,32 +152,35 @@ function renderBudget(budget) {
     div.className = "budget";
     div.dataset.id = budget.id;
     div.innerHTML = `
-    <div class="editArea">
-        <h2>Editing: ${budget.name}</h2>
-        <div class="controls" style="display:flex; gap:5px; margin-top:10px;">
+    <div class="editArea hidden">
+        <h2 contenteditable="true" onblur="updateBudgetName(this)">${budget.name}</h2>
+        <div style="display:flex; gap:5px; margin-top:10px;">
             <input placeholder="Item" class="itemName" style="flex:2">
-            <input type="number" placeholder="£" class="itemAmount" style="width:60px">
+            <input type="number" placeholder="£" class="itemAmount">
             <button class="btn-add" onclick="addItem(this)">+</button>
         </div>
         <table>
             <thead><tr><th>Item</th><th>£</th><th>Paid</th><th></th></tr></thead>
-            <tbody></tbody>
+            <tbody class="edit-tbody"></tbody>
         </table>
-        <button class="btn-save" onclick="toggleView(this, true)">Finish Category</button>
+        <button class="btn-save" onclick="toggleView(this, true)">Save Changes</button>
     </div>
-    <div class="card hidden">
+
+    <div class="card">
         <div style="display:flex; justify-content:space-between; align-items:center">
             <h2>${budget.name}</h2>
             <span class="perc-text" style="font-size:12px; font-weight:bold; color:var(--primary)">0%</span>
         </div>
         <div class="progress-container"><div class="progress-bar"></div></div>
-        <table><tbody class="card-body"></tbody></table>
+        <table><tbody class="card-tbody"></tbody></table>
         <div class="total-row">
-            <span>Remaining:</span>
+            <span>Left to Pay:</span>
             <span style="color:var(--danger)">£<span class="cardRemaining">0.00</span></span>
         </div>
-        <button class="btn-edit" onclick="toggleView(this, false)">Edit Items</button>
-        <button class="btn-delete" style="margin-top:10px; background:none; color:#94a3b8; width:100%" onclick="deleteBudget(this)">Delete Category</button>
+        <div class="card-actions">
+            <button class="btn-edit" onclick="toggleView(this, false)">Edit</button>
+            <button class="btn-delete" onclick="deleteBudget(this)">Remove</button>
+        </div>
     </div>
     `;
     document.getElementById("budgets").appendChild(div);
@@ -181,11 +192,10 @@ function addItem(btn) {
     let budgetDiv = btn.closest(".budget");
     let nameI = budgetDiv.querySelector(".itemName");
     let amtI = budgetDiv.querySelector(".itemAmount");
-    let name = nameI.value;
     let amount = parseFloat(amtI.value);
-    if (!name || isNaN(amount)) return;
+    if (!nameI.value || isNaN(amount)) return;
 
-    let item = { id: Date.now(), name: name, amount: amount, isPaid: false };
+    let item = { id: Date.now(), name: nameI.value, amount: amount, isPaid: false };
     let budget = budgets.find(b => b.id == budgetDiv.dataset.id);
     budget.items.push(item);
     
@@ -196,44 +206,26 @@ function addItem(btn) {
 }
 
 function renderItem(budgetDiv, item) {
-    let tbody = budgetDiv.querySelector(".editArea tbody");
-    let row = document.createElement("tr");
-    row.className = "item-row" + (item.isPaid ? " paid" : "");
-    row.dataset.id = item.id;
-    row.innerHTML = `
-        <td contenteditable="true" onblur="editName(this)">${item.name}</td>
-        <td><input type="number" class="itemAmount" value="${item.amount}" oninput="editAmount(this)" style="width:50px"></td>
+    // Add to Edit Table
+    let editTbody = budgetDiv.querySelector(".edit-tbody");
+    let eRow = document.createElement("tr");
+    eRow.className = "item-row" + (item.isPaid ? " paid" : "");
+    eRow.dataset.id = item.id;
+    eRow.innerHTML = `
+        <td contenteditable="true" onblur="editItemName(this)">${item.name}</td>
+        <td><input type="number" class="itemAmount" value="${item.amount}" oninput="editItemAmount(this)"></td>
         <td><input type="checkbox" ${item.isPaid ? 'checked' : ''} onclick="togglePaid(this)"></td>
-        <td><button class="btn-delete" onclick="deleteItem(this)">✕</button></td>
+        <td><button class="delete-small" onclick="deleteItem(this)">✕</button></td>
     `;
-    tbody.appendChild(row);
+    editTbody.appendChild(eRow);
 
-    let cardTbody = budgetDiv.querySelector(".card-body");
-    let cardRow = document.createElement("tr");
-    cardRow.dataset.id = item.id;
-    cardRow.className = item.isPaid ? "paid" : "";
-    cardRow.innerHTML = `<td>${item.name}</td><td>£${item.amount.toFixed(2)}</td><td>${item.isPaid ? '✅' : '⏳'}</td>`;
-    cardTbody.appendChild(cardRow);
-}
-
-function editName(cell) {
-    let row = cell.closest("tr");
-    let budget = budgets.find(b => b.id == row.closest(".budget").dataset.id);
-    let item = budget.items.find(i => i.id == row.dataset.id);
-    item.name = cell.innerText;
-    updateCardRow(row.closest(".budget"), item);
-    save();
-}
-
-function editAmount(input) {
-    let row = input.closest("tr");
-    let budgetDiv = row.closest(".budget");
-    let budget = budgets.find(b => b.id == budgetDiv.dataset.id);
-    let item = budget.items.find(i => i.id == row.dataset.id);
-    item.amount = parseFloat(input.value) || 0;
-    updateCardRow(budgetDiv, item);
-    updateTotal(budgetDiv);
-    save();
+    // Add to Card Table
+    let cardTbody = budgetDiv.querySelector(".card-tbody");
+    let cRow = document.createElement("tr");
+    cRow.dataset.id = item.id;
+    cRow.className = item.isPaid ? "paid" : "";
+    cRow.innerHTML = `<td>${item.name}</td><td>£${item.amount.toFixed(2)}</td><td>${item.isPaid ? '✅' : '⏳'}</td>`;
+    cardTbody.appendChild(cRow);
 }
 
 function togglePaid(cb) {
@@ -242,18 +234,39 @@ function togglePaid(cb) {
     let budget = budgets.find(b => b.id == budgetDiv.dataset.id);
     let item = budget.items.find(i => i.id == row.dataset.id);
     item.isPaid = cb.checked;
+    
     row.classList.toggle("paid", cb.checked);
-    updateCardRow(budgetDiv, item);
+    let cRow = budgetDiv.querySelector(`.card-tbody tr[data-id="${item.id}"]`);
+    cRow.className = item.isPaid ? "paid" : "";
+    cRow.innerHTML = `<td>${item.name}</td><td>£${item.amount.toFixed(2)}</td><td>${item.isPaid ? '✅' : '⏳'}</td>`;
+    
     updateTotal(budgetDiv);
     save();
 }
 
-function updateCardRow(budgetDiv, item) {
-    let cardRow = budgetDiv.querySelector(`.card-body tr[data-id="${item.id}"]`);
-    if (cardRow) {
-        cardRow.className = item.isPaid ? "paid" : "";
-        cardRow.innerHTML = `<td>${item.name}</td><td>£${item.amount.toFixed(2)}</td><td>${item.isPaid ? '✅' : '⏳'}</td>`;
-    }
+function editItemName(cell) {
+    let row = cell.closest("tr");
+    let budget = budgets.find(b => b.id == row.closest(".budget").dataset.id);
+    let item = budget.items.find(i => i.id == row.dataset.id);
+    item.name = cell.innerText;
+    save();
+}
+
+function editItemAmount(input) {
+    let row = input.closest("tr");
+    let budgetDiv = row.closest(".budget");
+    let budget = budgets.find(b => b.id == budgetDiv.dataset.id);
+    let item = budget.items.find(i => i.id == row.dataset.id);
+    item.amount = parseFloat(input.value) || 0;
+    updateTotal(budgetDiv);
+    save();
+}
+
+function updateBudgetName(h2) {
+    let budget = budgets.find(b => b.id == h2.closest(".budget").dataset.id);
+    budget.name = h2.innerText;
+    h2.closest(".budget").querySelector(".card h2").innerText = budget.name;
+    save();
 }
 
 function deleteItem(btn) {
@@ -262,19 +275,31 @@ function deleteItem(btn) {
     let budget = budgets.find(b => b.id == budgetDiv.dataset.id);
     budget.items = budget.items.filter(i => i.id != row.dataset.id);
     row.remove();
-    budgetDiv.querySelector(`.card-body tr[data-id="${row.dataset.id}"]`).remove();
+    budgetDiv.querySelector(`.card-tbody tr[data-id="${row.dataset.id}"]`).remove();
     updateTotal(budgetDiv);
     save();
 }
 
 function toggleView(btn, showCard) {
     let budgetDiv = btn.closest(".budget");
+    if(showCard) {
+        // Refresh the card view to reflect any text edits
+        let budget = budgets.find(b => b.id == budgetDiv.dataset.id);
+        budgetDiv.querySelector(".card-tbody").innerHTML = "";
+        budget.items.forEach(i => {
+            let row = document.createElement("tr");
+            row.dataset.id = i.id;
+            row.className = i.isPaid ? "paid" : "";
+            row.innerHTML = `<td>${i.name}</td><td>£${i.amount.toFixed(2)}</td><td>${i.isPaid ? '✅' : '⏳'}</td>`;
+            budgetDiv.querySelector(".card-tbody").appendChild(row);
+        });
+    }
     budgetDiv.querySelector(".editArea").classList.toggle("hidden", showCard);
     budgetDiv.querySelector(".card").classList.toggle("hidden", !showCard);
 }
 
 function deleteBudget(btn) {
-    if(confirm("Delete this category?")) {
+    if(confirm("Delete this entire card?")) {
         let budgetDiv = btn.closest(".budget");
         budgets = budgets.filter(b => b.id != budgetDiv.dataset.id);
         budgetDiv.remove();
@@ -286,33 +311,27 @@ function deleteBudget(btn) {
 function updateTotal(budgetDiv) {
     let budget = budgets.find(b => b.id == budgetDiv.dataset.id);
     if(!budget) return;
-    let totalPlanned = budget.items.reduce((sum, item) => sum + item.amount, 0);
-    let totalPaid = budget.items.filter(i => i.isPaid).reduce((sum, item) => sum + item.amount, 0);
-    let remaining = totalPlanned - totalPaid;
+    let planned = budget.items.reduce((s, i) => s + i.amount, 0);
+    let paid = budget.items.filter(i => i.isPaid).reduce((s, i) => s + i.amount, 0);
     
-    budgetDiv.querySelector(".cardRemaining").innerText = remaining.toFixed(2);
-    let perc = totalPlanned > 0 ? (totalPaid / totalPlanned) * 100 : 0;
+    budgetDiv.querySelector(".cardRemaining").innerText = (planned - paid).toFixed(2);
+    let perc = planned > 0 ? (paid / planned) * 100 : 0;
     budgetDiv.querySelector(".progress-bar").style.width = perc + "%";
     budgetDiv.querySelector(".perc-text").innerText = Math.round(perc) + "%";
-
     updateDashboard();
 }
 
 function updateDashboard() {
     let planned = 0, paid = 0;
-    budgets.forEach(b => {
-        b.items.forEach(i => {
-            planned += i.amount;
-            if(i.isPaid) paid += i.amount;
-        });
-    });
-    
+    budgets.forEach(b => b.items.forEach(i => {
+        planned += i.amount;
+        if(i.isPaid) paid += i.amount;
+    }));
     let inc = parseFloat(document.getElementById("monthlyIncome").value) || 0;
     document.getElementById("grandTotal").innerText = planned.toFixed(2);
     document.getElementById("grandPaid").innerText = paid.toFixed(2);
     document.getElementById("grandRemaining").innerText = (planned - paid).toFixed(2);
     document.getElementById("safeToSpend").innerText = (inc - planned).toFixed(2);
-    save();
 }
 
 load();
